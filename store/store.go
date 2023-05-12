@@ -49,15 +49,23 @@ func IsEmptyDir(path string) (bool, error) {
 	}
 	defer f.Close()
 
-	// Checks for atleast one file
-	_, err = f.Readdir(1)
+	// Check if the path is a directory
+	fi, err := f.Stat()
+	if err != nil {
+		return false, err
+	}
 
+	if !fi.IsDir() {
+		return false, nil
+	}
+
+	// Checks for at least one file
+	_, err = f.Readdir(1)
 	if err == io.EOF {
 		return true, nil
 	}
 
 	return false, err
-
 }
 
 func DirExists(path string) error {

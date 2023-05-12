@@ -10,13 +10,15 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/farzaanshaikh/resume-manager-cli/cmd/config"
 	initialize "github.com/farzaanshaikh/resume-manager-cli/cmd/init"
+	"github.com/farzaanshaikh/resume-manager-cli/cmdutil"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-var cfgFile string
+// var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -40,38 +42,27 @@ func Execute() {
 
 func addSubCommandPalettes() {
 	rootCmd.AddCommand(initialize.InitCmd)
+	rootCmd.AddCommand(config.ConfigCmd)
 }
 
 func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.resume-manager-cli.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
+	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is .reman)")
 
 	addSubCommandPalettes()
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-		// Find home directory.
-		wd, err := os.Getwd()
-		cobra.CheckErr(err)
-
-		// Search config in home directory with name ".resume-manager-cli" (without extension).
+	if wd, err := os.Getwd(); err != nil {
+		// Search config in current directory with name ".reman" (without extension).
 		viper.AddConfigPath(wd)
 		viper.SetConfigType("yaml")
-		viper.SetConfigName(".resume-manager-cli")
+		viper.SetConfigName(cmdutil.ConfigDefaultName)
+	} else {
+		cobra.CheckErr(err)
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
