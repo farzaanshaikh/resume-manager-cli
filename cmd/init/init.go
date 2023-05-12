@@ -7,16 +7,19 @@ license that can be found in the LICENSE file.
 package initialize
 
 import (
-	"errors"
+	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/farzaanshaikh/resume-manager-cli/cmdutil"
 	"github.com/farzaanshaikh/resume-manager-cli/store"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-var path string
+var path string // Path to run init
 
 // InitCmd represents the init command
 var InitCmd = &cobra.Command{
@@ -52,6 +55,7 @@ func initDir(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	reader := bufio.NewReader(os.Stdin)
 	// Verify path exists
 	if err := store.DirExists(path); err != nil {
 		cobra.CheckErr(err)
@@ -59,9 +63,11 @@ func initDir(cmd *cobra.Command, args []string) error {
 
 	// Warning if directory is not empty
 	if isEmpty, err := store.IsEmptyDir(path); !isEmpty {
-		var choice string
+
 		fmt.Fprint(os.Stdout, "Warning: Directory not empty, do you wish to continue? (y or n) ")
-		fmt.Fscanf(os.Stdin, "%s", &choice)
+		choice, _ := reader.ReadString('\n')
+		choice = strings.TrimRight(choice, "\n")
+
 		if choice == "n" || choice == "N" {
 			fmt.Fprintln(os.Stderr, "Aborted.")
 			os.Exit(1)
@@ -70,7 +76,11 @@ func initDir(cmd *cobra.Command, args []string) error {
 		cobra.CheckErr(err)
 	}
 
-	if err := createDirs(path); err != nil {
+	if err := createDirs(); err != nil {
+		cobra.CheckErr(err)
+	}
+
+	if err := createConfigFile(); err != nil {
 		cobra.CheckErr(err)
 	}
 
@@ -78,7 +88,7 @@ func initDir(cmd *cobra.Command, args []string) error {
 }
 
 // Func to create the derectories specified in the init command
-func createDirs(path string) error {
+func createDirs() error {
 	// List of dir to create
 	toCreate := []string{
 		filepath.Join(path, store.SrcSubPath(store.Custom)),
@@ -90,7 +100,7 @@ func createDirs(path string) error {
 
 	// check command by creating src dir
 	if err := os.Mkdir(filepath.Join(path, store.Src), store.Perm); err != nil && !os.IsExist(err) {
-		return errors.New("cannot create dir, check permissions")
+		return err
 	}
 
 	for _, dir := range toCreate {
@@ -98,6 +108,28 @@ func createDirs(path string) error {
 		if err != nil && !os.IsExist(err) {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func createConfigFile() error {
+	fileFullName := filepath.Join(path, cmdutil.ConfigDefaultName)
+	if _, err := os.Create(fileFullName); err != nil {
+		return err
+	}
+
+	// Initialize file with Viper
+	viper.SetConfigName(cmdutil.ConfigDefaultName)
+	viper.AddConfigPath(path)
+	viper.SetConfigType("yaml")
+
+	// Set default values
+	viper.Set(cmdutil.VersionKey, cmdutil.Version)
+	viper.Set(cmdutil.AuthorNameKey, cmdutil.ConfigDefaultAuthorName)
+
+	if err := viper.WriteConfig(); err != nil {
+		return err
 	}
 
 	return nil
@@ -111,7 +143,7 @@ func init() {
 	// and all subcommands, e.g.:
 	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
 
-	InitCmd.Flags().StringVarP(&path, "dir", "d", "", "Specify directory to initialize the resume store")
+	InitCmd.Flags().StringVarP(&path, "dir", "d", "", "Specify directory to initialize the resume store in")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
