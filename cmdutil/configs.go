@@ -6,20 +6,11 @@ license that can be found in the LICENSE file.
 */
 package cmdutil
 
-import "os"
-
 const (
-	ConfigDefaultName       = ".reman"
-	ConfigDefaultAuthorName = "Reman"
-	VersionKey              = "$version"
-	AuthorNameKey           = "author.name"
+	DefaultConfigFileName = ".reman"
+	VersionKey            = "$version" // Key for the version info in config file, current version is defined in `cmdutil.Version`
+
+	AuthorNameKey     = "author.name" // Name of the author, used for writing filenames
+	AuthorNameLimit   = 19            // Character limit for the name of the author
+	DefaultAuthorName = "Reman"       // Default value for author name, defaults are set in config at init
 )
-
-// Checks if config file exists
-func ConfigExists() bool {
-	if _, err := os.Stat(ConfigDefaultName); err != nil {
-		return false
-	}
-
-	return true
-}

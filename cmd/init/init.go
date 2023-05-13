@@ -114,19 +114,30 @@ func createDirs() error {
 }
 
 func createConfigFile() error {
-	fileFullName := filepath.Join(path, cmdutil.ConfigDefaultName)
+	fileFullName := filepath.Join(path, cmdutil.DefaultConfigFileName)
+	if _, err := os.Stat(fileFullName); err == nil {
+		fmt.Fprint(os.Stdout, "Config file found, do you want to reinitialize file? (y or n) ")
+		reader := bufio.NewReader(os.Stdin)
+		choice, _ := reader.ReadString('\n')
+		choice = strings.TrimRight(choice, "\n")
+		if choice == "n" || choice == "N" {
+			return nil
+		}
+	}
+
 	if _, err := os.Create(fileFullName); err != nil {
 		return err
 	}
 
 	// Initialize file with Viper
-	viper.SetConfigName(cmdutil.ConfigDefaultName)
+	viper.Reset()
+	viper.SetConfigName(cmdutil.DefaultConfigFileName)
 	viper.AddConfigPath(path)
 	viper.SetConfigType("yaml")
 
 	// Set default values
 	viper.Set(cmdutil.VersionKey, cmdutil.Version)
-	viper.Set(cmdutil.AuthorNameKey, cmdutil.ConfigDefaultAuthorName)
+	viper.Set(cmdutil.AuthorNameKey, cmdutil.DefaultAuthorName)
 
 	if err := viper.WriteConfig(); err != nil {
 		return err
