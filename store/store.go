@@ -1,8 +1,8 @@
 /*
-Copyright © 2023 Farzaan Shaikh fvshaikh93@gmail.com
+Copyright © 2023 Farzaan Shaikh
 
-Use of this source code is governed by a GPL
-license that can be found in the LICENSE file.
+This code is licensed under the Apache License 2.0.
+For more information, please see the LICENSE file.
 */
 package store
 
@@ -20,7 +20,8 @@ const (
 	Src     = "src"
 	Preview = "preview"
 	Resume  = "Resume"
-	Perm    = 0755 // Default permission for the dirs
+	Perm    = 0755   // Default permission for the dirs
+	TexExt  = ".tex" // Extension for latex files (.tex)
 )
 
 // Subdirectory within "src/".

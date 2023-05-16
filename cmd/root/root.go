@@ -1,8 +1,8 @@
 /*
-Copyright © 2023 Farzaan Shaikh fvshaikh93@gmail.com
+Copyright © 2023 Farzaan Shaikh
 
-Use of this source code is governed by a GPL
-license that can be found in the LICENSE file.
+This code is licensed under the Apache License 2.0.
+For more information, please see the LICENSE file.
 */
 package root
 
@@ -11,6 +11,7 @@ import (
 
 	"github.com/farzaanshaikh/resume-manager-cli/cmd/config"
 	initialize "github.com/farzaanshaikh/resume-manager-cli/cmd/init"
+	newPkg "github.com/farzaanshaikh/resume-manager-cli/cmd/new"
 	"github.com/farzaanshaikh/resume-manager-cli/cmdutil"
 
 	"github.com/spf13/cobra"
@@ -42,6 +43,7 @@ func Execute() {
 func addSubCommandPalettes() {
 	rootCmd.AddCommand(initialize.InitCmd)
 	rootCmd.AddCommand(config.ConfigCmd)
+	rootCmd.AddCommand(newPkg.NewCmd)
 }
 
 func init() {
