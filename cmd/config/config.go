@@ -1,18 +1,15 @@
 /*
-Copyright © 2023 Farzaan Shaikh fvshaikh93@gmail.com
+Copyright © 2023 Farzaan Shaikh
 
-Use of this source code is governed by a GPL
-license that can be found in the LICENSE file.
+This code is licensed under the Apache License 2.0.
+For more information, please see the LICENSE file.
 */
 package config
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"os"
-	"regexp"
-	"strings"
 
 	"github.com/farzaanshaikh/resume-manager-cli/cmdutil"
 	"github.com/fatih/color"
@@ -42,25 +39,19 @@ file directly might break things, best use this command.`,
 
 func authorConfig() error {
 
-	// Readers and writers of different colors
-	reader := bufio.NewReader(os.Stdin)
+	// Bold writer
 	bWriter := color.New(color.Bold)
-	gWriter := color.New(color.Faint)
-
-	bWriter.Fprint(os.Stdout, "\nAuthor info\n")
+	bWriter.Fprint(os.Stdout, "\nAuthor Info\n")
 
 	// Get author.name
-	fmt.Fprint(os.Stdout, "Set name of author")
-	currName := viper.Get(cmdutil.AuthorNameKey)
-	if currName != nil {
-		gWriter.Fprint(os.Stdout, "(", currName, ")")
+	currName, _ := viper.Get(cmdutil.AuthorNameKey).(string)
+	p := cmdutil.Prompter{
+		Question:     "Name of author",
+		DefaultValue: currName,
 	}
-	fmt.Fprint(os.Stdout, ": ")
-	authorName, _ := reader.ReadString('\n')
-	authorName = strings.TrimRight(authorName, "\n")
-	authorName = strings.TrimLeft(authorName, " ")
+	authorName := p.Input()
 
-	if authorName == "" && currName == nil {
+	if authorName == "" && currName == "" {
 		return errors.New("must have a name")
 	} else if authorName != "" {
 		if err := validateAuthorName(authorName); err != nil {
@@ -79,16 +70,11 @@ func validateAuthorName(authorName string) error {
 		return errors.New(msg)
 	}
 
-	if !isValidString(authorName) {
-		return errors.New("use of special characters or spaces")
+	if err := cmdutil.IsValidNameString(authorName); err != nil {
+		return err
 	}
 
 	return nil
-}
-
-func isValidString(s string) bool {
-	regex := regexp.MustCompile(`^[a-zA-Z0-9]+$`)
-	return regex.MatchString(s)
 }
 
 func init() {

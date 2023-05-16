@@ -1,17 +1,15 @@
 /*
-Copyright © 2023 Farzaan Shaikh fvshaikh93@gmail.com
+Copyright © 2023 Farzaan Shaikh
 
-Use of this source code is governed by a GPL
-license that can be found in the LICENSE file.
+This code is licensed under the Apache License 2.0.
+For more information, please see the LICENSE file.
 */
 package initialize
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/farzaanshaikh/resume-manager-cli/cmdutil"
 	"github.com/farzaanshaikh/resume-manager-cli/store"
@@ -23,7 +21,7 @@ var path string // Path to run init
 
 // InitCmd represents the init command
 var InitCmd = &cobra.Command{
-	Use:   "init [flags]",
+	Use:   "init",
 	Short: "Initialize a resume store",
 	Long: `Used to initialize a new resume store in a directory.
 
@@ -33,11 +31,11 @@ Your-Folder/
 │   ├── first_resume.tex	# Latex files are in src/ folder
 │   ├── custom/			# All support files (.sty, .cls) go here
 │   ├── outputs/		# Render outputs such as log and axiliary
-│   └── templates/		# Templates are resume you store for reuse
+│   └── templates/		# Templates are latex files you store for reuse
 ├── preview/			# Save multiple previews before you finalize
 │   └── first_resume_p1.pdf	
 └── Resume/			# Finalized files go here
-    └── first_resume_p1.pdf`,
+    └── first_resume.pdf`,
 
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := initDir(cmd, args); err != nil {
@@ -55,7 +53,6 @@ func initDir(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	reader := bufio.NewReader(os.Stdin)
 	// Verify path exists
 	if err := store.DirExists(path); err != nil {
 		cobra.CheckErr(err)
@@ -63,25 +60,22 @@ func initDir(cmd *cobra.Command, args []string) error {
 
 	// Warning if directory is not empty
 	if isEmpty, err := store.IsEmptyDir(path); !isEmpty {
-
-		fmt.Fprint(os.Stdout, "Warning: Directory not empty, do you wish to continue? (y or n) ")
-		choice, _ := reader.ReadString('\n')
-		choice = strings.TrimRight(choice, "\n")
-
-		if choice == "n" || choice == "N" {
-			fmt.Fprintln(os.Stderr, "Aborted.")
+		p := cmdutil.Prompter{Question: "Directory not empty, do you wish to continue?"}
+		ans := p.Confirm()
+		if !ans {
+			fmt.Fprintln(os.Stderr, "Aborted")
 			os.Exit(1)
 		}
 	} else if err != nil {
-		cobra.CheckErr(err)
+		return err
 	}
 
 	if err := createDirs(); err != nil {
-		cobra.CheckErr(err)
+		return err
 	}
 
 	if err := createConfigFile(); err != nil {
-		cobra.CheckErr(err)
+		return err
 	}
 
 	return nil
@@ -116,11 +110,9 @@ func createDirs() error {
 func createConfigFile() error {
 	fileFullName := filepath.Join(path, cmdutil.DefaultConfigFileName)
 	if _, err := os.Stat(fileFullName); err == nil {
-		fmt.Fprint(os.Stdout, "Config file found, do you want to reinitialize file? (y or n) ")
-		reader := bufio.NewReader(os.Stdin)
-		choice, _ := reader.ReadString('\n')
-		choice = strings.TrimRight(choice, "\n")
-		if choice == "n" || choice == "N" {
+		p := cmdutil.Prompter{Question: "Config file found, do you want to reinitialize?"}
+		ans := p.Confirm()
+		if !ans {
 			return nil
 		}
 	}
