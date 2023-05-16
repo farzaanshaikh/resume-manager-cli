@@ -23,7 +23,19 @@ import (
 var NewCmd = &cobra.Command{
 	Use:   "new",
 	Short: "Creates a new resume",
-	Long:  ``,
+	Long: `Creates a new resume as a latex file. 
+Optionally use a template to get started.
+
+To build the resume use the 'preview' command.
+You can have multiple previews of the same resume
+and finalize on one later.
+
+Templates are latex files in the 'src/templates' folder.
+Copy latex files you wish to use as a template for future resumes
+in the templates folder.
+
+Support files (.cls, .sty) can be stored in the 'src/custom' folder.
+These must be imported like 'custom/mcdowellcv' in your latex doc.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// check for vaild dir
 		if viper.Get(cmdutil.VersionKey) == nil {
