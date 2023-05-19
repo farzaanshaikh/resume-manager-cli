@@ -18,7 +18,7 @@ import (
 
 const (
 	Src     = "src"
-	Preview = "preview"
+	Preview = "Previews"
 	Resume  = "Resume"
 	Perm    = 0755   // Default permission for the dirs
 	TexExt  = ".tex" // Extension for latex files (.tex)
