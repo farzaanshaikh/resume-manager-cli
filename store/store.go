@@ -76,3 +76,10 @@ func DirExists(path string) error {
 
 	return nil
 }
+
+func FileExists(dir string, filename string) bool {
+	path := filepath.Join(dir, filename)
+	_, err := os.Stat(path)
+
+	return err == nil
+}

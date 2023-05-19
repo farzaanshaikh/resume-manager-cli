@@ -12,6 +12,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/farzaanshaikh/resume-manager-cli/cmdutil"
 	"github.com/farzaanshaikh/resume-manager-cli/store"
@@ -90,14 +91,35 @@ func newResume() error {
 		choice = p.Select()
 	}
 
-	return createResFile(resName, choice)
+	newFileName, err := generateResName(resName)
+	if err != nil {
+		return err
+	}
+
+	if store.FileExists(store.Src, newFileName) {
+		return errors.New("resume already exists")
+	}
+
+	return createResFile(newFileName, choice)
+}
+
+// Generates resume name with extension
+func generateResName(resName string) (string, error) {
+	authorName := viper.GetString(cmdutil.AuthorNameKey)
+	if authorName == "" {
+		return "", errors.New("failed to load author name, use 'reman config' to set")
+	}
+
+	fileName := strings.Join([]string{authorName, "_", resName, store.TexExt}, "")
+
+	return fileName, nil
 }
 
 func createResFile(name string, template string) error {
 
 	// Create the resume file
 	var df *os.File
-	df, err := os.Create(filepath.Join(store.Src, name+store.TexExt))
+	df, err := os.Create(filepath.Join(store.Src, name))
 	if err != nil {
 		return err
 	}
